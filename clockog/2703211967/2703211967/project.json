@@ -1,0 +1,23 @@
+{
+	"contentrating" : "Everyone",
+	"description" : "增加了更换颜色的功能，点击右上角按钮即可切换。右下角添加了日期显示。\n创意工坊不能更新原来的，只能新发一个了",
+	"file" : "index.html",
+	"general" : 
+	{
+		"properties" : 
+		{
+			"schemecolor" : 
+			{
+				"order" : 0,
+				"text" : "ui_browse_properties_scheme_color",
+				"type" : "color",
+				"value" : "0 0 0"
+			}
+		}
+	},
+	"preview" : "preview.jpg",
+	"tags" : [ "Abstract" ],
+	"title" : "black/white_clock 滑动时钟",
+	"type" : "web",
+	"version" : 0
+}

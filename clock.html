@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Sliding Clock</title>
+    <style>
+        @font-face {
+          font-family: 'Overpass';
+          font-style: normal;
+          font-weight: 400;
+          src: local('Overpass Regular'), local('Overpass-Regular'), url(https://fonts.gstatic.com/s/overpass/v2/qFdH35WCmI96Ajtm81GlU9s.woff2) format('woff2');
+        }
+
+        /* 
+         * --- MASTER STYLE & THEME VARIABLES ---
+         * The `:root` selector defines the default (light) theme variables.
+         * Each theme defined below simply overrides these variables with different colors.
+         */
+        :root {
+            /* Clock dimensions */
+            --number-size: 4rem;
+            --strip-width: 4.5rem;
+            --slider-height: 220px;
+            
+            /* Theme colors (Default: light theme) */
+            --bg-gradient: linear-gradient(-45deg, #c4d2ef, #dfe6f6);
+            --strip-bg: #dfe6f6;
+            --strip-shadow: -10px -10px 20px -5px #f9fbfd, 10px 10px 20px #a9bee8;
+            --number-color: #8a9ac0;       /* Color of idle numbers */
+            --pop-color: #3e6ccb;          /* Color of the active, 'popped' number */
+            --pop-bg: #dfe6f6;             /* Background of the popped number */
+            --pop-shadow: -10px -10px 20px -5px #f9fbfd, 10px 10px 20px #a9bee8;
+            --date-color: #4477ddcc;
+            --week-color: #3b78e9cc;
+            --button-bg: #2c2c2c;
+            --button-icon: #fff;
+            
+            /* UI element colors */
+            --level-color: #3e6ccb;        /* Zoom slider fill color */
+            --slider-bg: rgba(0, 0, 0, 0.1);
+            --slider-value-color: var(--date-color);
+            --button-anim-shadow: rgba(45, 35, 66, 0.2);
+            --button-anim-edge: #d6d6e7;
+        }
+        
+        /* 
+         * --- HOW TO ADD A NEW THEME (CSS Part) ---
+         * 1. Copy any 'body.theme-...' block below.
+         * 2. Rename the class (e.g., 'body.theme-neon').
+         * 3. Change the variable values inside to your new colors.
+         * 4. Go to the <script> section and add your new class name ('theme-neon') to the 'themes' array.
+         */
+        body.theme-dark {
+            --bg-gradient: linear-gradient(-45deg, #242424, #3a3a3a);
+            --strip-bg: rgba(0, 0, 0, 0.2);
+            --strip-shadow: 0px 8px 16px rgba(0,0,0,0.3);
+            --number-color: #8a8a8a;
+            --pop-color: #ffffff;
+            --pop-bg: #2c2c2c;
+            --pop-shadow: -5px -5px 10px rgba(74, 74, 74, 0.2), 5px 5px 12px rgba(0, 0, 0, 0.5);
+            --date-color: #e9e9e9;
+            --week-color: #e9e9e9;
+            --button-bg: #c4d2ef;
+            --button-icon: #000;
+            --level-color: #c4d2ef;
+            --slider-bg: rgba(0, 0, 0, 0.2);
+            --button-anim-shadow: rgba(0, 0, 0, 0.3);
+            --button-anim-edge: #ffffff;
+        }
+
+        body.theme-ocean {
+            --bg-gradient: linear-gradient(-45deg, #022b42, #005664);
+            --strip-bg: #034863;
+            --strip-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+            --number-color: #8cd0e3;
+            --pop-color: #ffffff;
+            --pop-bg: #017890;
+            --pop-shadow: -10px -10px 20px #0199b6, 10px 10px 20px #01576a;
+            --date-color: #a1e9fc;
+            --week-color: #c0f4ff;
+            --button-bg: #c0f4ff;
+            --button-icon: #022b42;
+            --level-color: #a1e9fc;
+            --slider-bg: rgba(255, 255, 255, 0.1);
+            --button-anim-shadow: rgba(2, 43, 66, 0.4);
+            --button-anim-edge: #ffffff;
+        }
+
+        /* Other themes collapsed for brevity... they follow the same structure */
+        body.theme-sunset { --bg-gradient: linear-gradient(-45deg, #5c0a3d, #a73737); --strip-bg: #8a2424; --strip-shadow: inset 0 0 15px rgba(0,0,0,0.5); --number-color: #ffb899; --pop-color: #fff; --pop-bg: #e65c00; --pop-shadow: -10px -10px 20px #fa7e25, 10px 10px 20px #b44700; --date-color: #ffb899; --week-color: #ffdfc4; --button-bg: #ffdfc4; --button-icon: #5c0a3d; --level-color: #ffb899; --slider-bg: rgba(0,0,0,0.2); --button-anim-shadow: rgba(92,10,61,0.4); --button-anim-edge: #fff; }
+        body.theme-forest { --bg-gradient: linear-gradient(-45deg, #1A4314, #2A5D2A); --strip-bg: #153a11; --strip-shadow: inset 0 0 15px rgba(0,0,0,0.6); --number-color: #A2D4A1; --pop-color: #fff; --pop-bg: #4F6F52; --pop-shadow: -10px -10px 20px #6A8B69, 10px 10px 20px #345337; --date-color: #D2E3C8; --week-color: #E8F5E9; --button-bg: #E8F5E9; --button-icon: #1A4314; --level-color: #D2E3C8; --slider-bg: rgba(255,255,255,0.1); --button-anim-shadow: rgba(26,67,20,0.4); --button-anim-edge: #fff; }
+        body.theme-rose { --bg-gradient: linear-gradient(-45deg, #F9D6D6, #E0B0B0); --strip-bg: #F5E3E3; --strip-shadow: -10px -10px 20px -5px #fff, 10px 10px 20px #D8C7C7; --number-color: #B48484; --pop-color: #8C4747; --pop-bg: #F5E3E3; --pop-shadow: -10px -10px 20px -5px #fff, 10px 10px 20px #D8C7C7; --date-color: #A56464; --week-color: #9D5A5A; --button-bg: #3B2020; --button-icon: #F9D6D6; --level-color: #A56464; --slider-bg: rgba(0,0,0,0.05); --button-anim-shadow: rgba(0,0,0,0.2); --button-anim-edge: #826F6F; }
+        body.theme-matrix { --bg-gradient: linear-gradient(0deg, #000, #030303); --strip-bg: #050505; --strip-shadow: 0 8px 16px rgba(0,100,0,0.2); --number-color: #004d00; --pop-color: #4CAF50; --pop-bg: #080808; --pop-shadow: 0 0 10px #4CAF50, 0 0 20px #4CAF50; --date-color: #388E3C; --week-color: #66BB6A; --button-bg: #66BB6A; --button-icon: #000; --level-color: #388E3C; --slider-bg: rgba(0,255,0,0.1); --slider-value-color: var(--level-color); --button-anim-shadow: rgba(0,0,0,0.4); --button-anim-edge: #A5D6A7; }
+        body.theme-arctic { --bg-gradient: linear-gradient(-45deg, #E6F7FF, #FFFFFF); --strip-bg: #E0F2F7; --strip-shadow: -10px -10px 20px -5px #fff, 10px 10px 20px #B0C4DE; --number-color: #79A7D3; --pop-color: #1a5ca1; --pop-bg: #D1E5F0; --pop-shadow: -10px -10px 20px -5px #fff, 10px 10px 20px #B0C4DE; --date-color: #6885A3; --week-color: #4A6E8D; --button-bg: #1A3E62; --button-icon: #fff; --level-color: #6885A3; --slider-bg: rgba(0,0,0,0.05); --button-anim-shadow: rgba(0,0,0,0.3); --button-anim-edge: #4A6E8D; }
+
+        * { box-sizing: border-box; padding: 0; margin: 0; }
+        html { place-items: center; transition: font-size 0.2s ease-out; }
+        body { font-family: monospace; font-size: 2rem; min-height: 100vh; display: grid; overflow-y: hidden; place-items: center; background: var(--bg-gradient); transition: background 500ms ease-in-out; user-select: none; }
+        .clock { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 5rem; height: 4rem; position: relative; padding: 0 4rem; }
+        .hr, .min, .sec { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 3rem; grid-row: 1/2; align-items: start; }
+        .strip { transition: transform 500ms ease-in-out, background-color 500ms ease-in-out, box-shadow 500ms ease-in-out; border-radius: 8px; background-color: var(--strip-bg); box-shadow: var(--strip-shadow); }
+        .number { padding: 0.5em; width: 4rem; height: 4rem; display: grid; place-items: center; color: var(--number-color); transition: all 400ms ease; border-radius: 50%; }
+        .number.pop { color: var(--pop-color); font-weight: bold; transform: scale(1.3); background-color: var(--pop-bg); box-shadow: var(--pop-shadow); }
+        
+        #changeButton {
+            position: fixed; width: 60px; height: 60px; top: 40px; right: 40px;
+            border-radius: 50%; border-width: 0; cursor: pointer;
+            display: grid; place-content: center; font-size: 28px;
+            background-color: var(--button-bg);
+            color: var(--button-icon);
+            box-shadow: var(--button-anim-shadow) 0 2px 4px, var(--button-anim-shadow) 0 7px 13px -3px, var(--button-anim-edge) 0 -3px 0 inset;
+            transform: translateY(0);
+            transition: box-shadow 0.15s, transform 0.15s, background-color 0.15s, color 0.15s;
+        }
+        #changeButton:hover { transform: translateY(-2px); box-shadow: var(--button-anim-shadow) 0 4px 8px, var(--button-anim-shadow) 0 7px 13px -3px, var(--button-anim-edge) 0 -3px 0 inset; }
+        #changeButton:active { transform: translateY(2px); box-shadow: var(--button-anim-edge) 0 3px 7px inset; }
+
+        #zoom-controls { position: fixed; top: 250px; right: 40px; width: 60px; display: flex; flex-direction: column; align-items: center; gap: 110px; cursor: pointer; }
+        #bottom-right-controls { position: fixed; bottom: 35px; right: 40px; display: flex; flex-direction: column; align-items: flex-end; gap: 20px; }
+        .zoom-level { -webkit-appearance: none; appearance: none; width: var(--slider-height); height: 15px; background: var(--slider-bg); overflow: hidden; border-radius: 5px; cursor: inherit; transform: rotate(270deg); }
+        .zoom-level::-webkit-slider-thumb { -webkit-appearance: none; width: 0; height: 0; box-shadow: -200px 0 0 200px var(--level-color); }
+        .zoom-value { font-size: 1.2rem; font-weight: bold; color: var(--slider-value-color); opacity: 0; transition: opacity 0.3s ease-in-out, color .5s; }
+        #zoom-controls:hover .zoom-value, #zoom-input:active ~ .zoom-value { color: var(--level-color); opacity: 1; }
+        
+        #date-container {
+            text-align: right;
+            cursor: pointer;
+            min-width: 380px; /* Ensures the clickable area has a consistent size, preventing layout shifts. */
+            transition: opacity 0.2s;
+        }
+        #date-container:hover { opacity: 0.8; }
+        
+        .date { font-size: 40px; font-family: "Overpass", Roboto; color: var(--date-color); transition: color 500ms ease-in-out; }
+        .week { font-size: 40px; font-family: "Overpass", Roboto; color: var(--week-color); transition: color 500ms ease-in-out; }
+    </style>
+</head>
+<body class="theme-dark">
+    <!-- The HTML structure is minimal. All clock digits are generated by the initial divs inside each strip. -->
+    <div class="clock"><div class="hr"><div class="strip"><div class="number">0</div><div class="number">1</div><div class="number">2</div></div><div class="strip"><div class="number">0</div><div class="number">1</div><div class="number">2</div><div class="number">3</div><div class="number">4</div><div class="number">5</div><div class="number">6</div><div class="number">7</div><div class="number">8</div><div class="number">9</div></div></div><div class="min"><div class="strip"><div class="number">0</div><div class="number">1</div><div class="number">2</div><div class="number">3</div><div class="number">4</div><div class="number">5</div></div><div class="strip"><div class="number">0</div><div class="number">1</div><div class="number">2</div><div class="number">3</div><div class="number">4</div><div class="number">5</div><div class="number">6</div><div class="number">7</div><div class="number">8</div><div class="number">9</div></div></div><div class="sec"><div class="strip"><div class="number">0</div><div class="number">1</div><div class="number">2</div><div class="number">3</div><div class="number">4</div><div class="number">5</div></div><div class="strip"><div class="number">0</div><div class="number">1</div><div class="number">2</div><div class="number">3</div><div class="number">4</div><div class="number">5</div><div class="number">6</div><div class="number">7</div><div class="number">8</div><div class="number">9</div></div></div></div>
+    <div id="changeButton">⚙︎</div>
+    <div id="zoom-controls"><input type="range" class="zoom-level" min="25" max="150" value="75" id="zoom-input" /><div class="zoom-value" id="zoom-display">75%</div></div>
+    <div id="bottom-right-controls"><div id="date-container"><div class="week"></div><div class="date"></div></div></div>
+    
+    <script>
+        // --- CORE CLOCK LOGIC ---
+        const strips = [...document.querySelectorAll(".strip")];
+        const numberSize = 4; // This value (in 'rem') must match --number-size in CSS for the slide to be accurate.
+        let lastDigits = [-1, -1, -1, -1, -1, -1];
+        
+        /**
+         * Core function to update the clock display. Runs frequently.
+         * It calculates current digits for H, M, S and slides the number strips into place
+         * using a CSS Transform. It only updates strips where the digit has changed.
+         */
+        function updateClock() {
+            const time = new Date();
+            const d = [ 
+                Math.floor(time.getHours() / 10), time.getHours() % 10, 
+                Math.floor(time.getMinutes() / 10), time.getMinutes() % 10, 
+                Math.floor(time.getSeconds() / 10), time.getSeconds() % 10 
+            ];
+            
+            for (let i = 0; i < d.length; i++) {
+                if (lastDigits[i] !== d[i]) {
+                    strips[i].style.transform = `translateY(${d[i] * -numberSize}rem)`;
+                    if (lastDigits[i] !== -1) { 
+                        strips[i].children[lastDigits[i]].classList.remove("pop"); 
+                    }
+                    strips[i].children[d[i]].classList.add("pop");
+                }
+            }
+            lastDigits = d;
+        }
+
+        // --- THEME CUSTOMIZATION ---
+
+        // --- HOW TO ADD A NEW THEME (JS Part) ---
+        // Add your new theme's class name here (e.g., 'theme-neon').
+        // It will then be included in the cycle when the gear icon is clicked.
+        const themes = ['theme-light', 'theme-dark', 'theme-ocean', 'theme-sunset', 'theme-forest', 'theme-rose', 'theme-matrix', 'theme-arctic'];
+        let currentThemeIndex = 1;
+        
+        function changeTheme() { 
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            document.body.className = themes[currentThemeIndex]; 
+        }
+
+        // --- DATE FORMAT CUSTOMIZATION ---
+
+        // --- HOW TO ADD A NEW DATE FORMAT ---
+        // 1. Add a short name for your new format to this array.
+        const dateFormats = ['verbose', 'mm/dd/yyyy', 'yyyy-mm-dd'];
+        let currentDateFormatIndex = 0;
+
+        function changeDateFormat() {
+            currentDateFormatIndex = (currentDateFormatIndex + 1) % dateFormats.length;
+            setDate(); // Rerender the date with the new format.
+        }
+        
+        /**
+         * Sets the date and week display. Now supports multiple formats.
+         * This function is called once on load and then every minute.
+         */
+        function setDate() { 
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const monthPadded = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            const week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][now.getDay()];
+            const monthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][now.getMonth()];
+            
+            let dateString = '';
+            const currentFormat = dateFormats[currentDateFormatIndex];
+
+            // 2. Add a 'case' for your new format name here to define how it displays.
+            switch (currentFormat) {
+                case 'mm/dd/yyyy':
+                    dateString = `${monthPadded}/${day}/${year}`;
+                    break;
+                case 'yyyy-mm-dd':
+                    dateString = `${year}-${monthPadded}-${day}`;
+                    break;
+                // Add your new case here, for example:
+                // case 'day-month-year':
+                //     dateString = `${day}-${monthPadded}-${year}`;
+                //     break;
+                case 'verbose':
+                default:
+                    dateString = `${monthName} ${day}, ${year}`;
+                    break;
+            }
+            document.querySelector(".date").textContent = dateString; 
+            document.querySelector(".week").textContent = `${week}.`; 
+        }
+
+        // --- ZOOM FUNCTIONALITY ---
+        const zoomInput = document.getElementById('zoom-input');
+        const zoomDisplay = document.getElementById('zoom-display');
+        function handleZoom() { 
+            const zoomLevel = zoomInput.value; 
+            document.documentElement.style.fontSize = `${zoomLevel}%`; 
+            zoomDisplay.textContent = `${zoomLevel}%`; 
+        }
+        
+        /**
+         * Initialization function. Runs once when the page loads.
+         * It sets up all event listeners and starts the clock update intervals.
+         */
+        function init() {
+            document.getElementById('changeButton').addEventListener('click', changeTheme);
+            document.getElementById('date-container').addEventListener('click', changeDateFormat);
+            zoomInput.addEventListener('input', handleZoom);
+            
+            updateClock();
+            setDate();
+            handleZoom();
+
+            setInterval(updateClock, 200); // Fast update for smooth seconds.
+            setInterval(setDate, 60000);   // Slower update for the date is efficient.
+        }
+        
+        // Let's get the clock ticking!
+        init();
+    </script>
+</body>
+</html> 
